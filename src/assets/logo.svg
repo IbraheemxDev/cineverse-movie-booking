@@ -1,0 +1,22 @@
+<svg width="2000" height="500" viewBox="0 0 2000 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Transparent background -->
+
+  <!-- Custom "C" icon (ring + play triangle) -->
+  <g transform="translate(-133.33,-133.33) scale(0.4792)">
+    <path
+      d="M 1108.54 1167.70 A 480 480 0 1 1 1108.54 432.30 L 986.41 577.85 A 290 290 0 1 0 986.41 1022.15 Z"
+      fill="#F0405A" />
+    <path
+      d="M 730 640 L 730 960 L 990 800 Z"
+      fill="#F0405A" />
+  </g>
+
+  <!-- Wordmark: "ineVerse" (completes "CineVerse" with the C icon) -->
+  <text
+    x="460"
+    y="385"
+    font-family="Arial, 'Liberation Sans', sans-serif"
+    font-weight="900"
+    font-size="300"
+    fill="#FFFFFF">ineVerse</text>
+</svg>

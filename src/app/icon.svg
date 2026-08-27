@@ -1,0 +1,13 @@
+<svg width="1600" height="1600" viewBox="0 0 1600 1600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Transparent background (no background rect) -->
+
+  <!-- "C" ring shape -->
+  <path
+    d="M 1108.54 1167.70 A 480 480 0 1 1 1108.54 432.30 L 986.41 577.85 A 290 290 0 1 0 986.41 1022.15 Z"
+    fill="#F0405A" />
+
+  <!-- Play triangle -->
+  <path
+    d="M 730 640 L 730 960 L 990 800 Z"
+    fill="#F0405A" />
+</svg>
