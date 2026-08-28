@@ -1,3 +1,4 @@
+'use client'
 import React from 'react'
 import { useRouter } from 'next/navigation';
 import { StarIcon } from 'lucide-react';
@@ -10,7 +11,7 @@ hover:-translate-y-1 transition duration-300 w-66'>
 
 <img onClick={() => {router.push(`/movies/${movie._id}`); scrollTo(0, 0)}}
 src={movie.backdrop_path} alt="" className='rounded-lg h-52 w-full
-object-cover object-right-bottom cursor-pointer'/>
+object-cover object-bottom-right cursor-pointer'/>
 
 <p className='font-semibold mt-2 truncate'>{movie.title}</p>
 
@@ -29,8 +30,7 @@ className='px-4 py-2 text-xs bg-primary hover:bg-primary-dull transition rounded
 </p>
 </div>
 
-</div>
-  )
+</div>)
 }
 
 export default MovieCard

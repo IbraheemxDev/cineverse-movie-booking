@@ -18,7 +18,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 
     <html
       lang="en"
-      className={`${inter.variable} h-full antialiased`}
+      
+      className={`${inter.variable} h-full antialiased scroll-smooth `}
       >
       <body className={`${inter.className} min-h-full flex flex-col`} >
         <Providers>
