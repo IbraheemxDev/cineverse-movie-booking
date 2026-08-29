@@ -1,4 +1,6 @@
+import Footer from "@/components/Footer";
 import LayoutContent from "@/components/LayoutContent";
+import Navbar from "@/components/Navbar";
 import {Toaster} from "react-hot-toast";
 export default function RootLayout({
   children,
@@ -7,7 +9,9 @@ export default function RootLayout({
 }>) {
   return (
     <div className="flex flex-col min-h-screen">
-      <LayoutContent>{children}</LayoutContent>
+      <Navbar />
+      {children}
+      <Footer/>
     </div>
   );
 }

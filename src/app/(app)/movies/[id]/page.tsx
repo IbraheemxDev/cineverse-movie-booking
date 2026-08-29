@@ -11,6 +11,7 @@ import timeFormat from '@/lib/timeFormat'
 import DateSelect from '@/components/DateSelect'
 import MovieCard from '@/components/MovieCard'
 import { useRouter } from 'next/navigation'
+import Loading from '@/components/Loading'
 const Page = () => {
   const router = useRouter()
   const params = useParams()
@@ -32,11 +33,7 @@ useEffect(() => {
 
   if (!show) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen">
-        <h1 className="text-3xl font-bold">
-          Loading...
-        </h1>
-      </div>
+      <Loading/>
     )
   }
 
