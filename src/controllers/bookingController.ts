@@ -1,86 +1,134 @@
-
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import Show from "@/models/Show";
-import { Booking } from "@/models/Booking";
+import dbConnect from "@/lib/dbConnect";
 import { asyncHandler } from "@/utils/AsyncHandler";
-import { ApiError } from "@/utils/ApiError";
-import { ApiResponse } from "@/utils/ApiResponse";
+import { NextResponse, NextRequest } from "next/server";
+import { Booking } from "@/models/Booking";
+import { auth } from "@/lib/auth"; // Aapka auth.ts file ka path
+import "@/models/Show";
+import "@/models/Movie";
+import User from "@/models/User";
 
-// Function to check availability of selected seats for a movie
-export const checkSeatsAvailability = async (
-  showId: string, 
-  selectedSeats: string[]
-): Promise<boolean> => {
-  try {
-    const showData = await Show.findById(showId);
-    if (!showData) return false;
+// API Controller Function to Get User Bookings
+export const getUserBookings = asyncHandler(async (request: NextRequest) => {
+  await dbConnect();
 
-    const occupiedSeats = showData.occupiedSeats || {};
+  // Better Auth se session fetch karna
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
 
-    const isAnySeatTaken = selectedSeats.some(
-      (seat: string) => occupiedSeats[seat]
+  if (!session || !session.user) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized" },
+      { status: 401 }
     );
-
-    return !isAnySeatTaken;
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.log(errorMessage);
-    return false;
-  }
-};
-export const createBooking = asyncHandler(async (req: NextRequest) => {
-  const { userId } = await auth();
-
-  if (!userId) {
-    throw new ApiError(401, "Unauthorized: Please log in");
   }
 
-  const body = await req.json();
-  const { showId, selectedSeats } = body;
+  const userId = session.user.id;
 
-  if (!showId || !selectedSeats || !selectedSeats.length) {
-    throw new ApiError(400, "Show ID and selected seats are required");
-  }
+  const bookings = await Booking.find({ user: userId })
+    .populate({
+      path: "show",
+      populate: { path: "movie" },
+    })
+    .sort({ createdAt: -1 });
 
-  // 1. Check if the seats are available for the selected show
-  const isAvailable = await checkSeatsAvailability(showId, selectedSeats);
-
-  if (!isAvailable) {
-    throw new ApiError(400, "Selected seats are not available.");
-  }
-
-  // 2. Get the show details
-  const showData = await Show.findById(showId).populate("movie");
-
-  if (!showData) {
-    throw new ApiError(404, "Show not found");
-  }
-
-  // 3. Create a new booking
-  const booking = await Booking.create({
-    user: userId,
-    show: showId,
-    amount: (showData.showPrice || 0) * selectedSeats.length,
-    bookedSeats: selectedSeats,
-  });
-
-  // 4. Mark selected seats as occupied
-  if (!showData.occupiedSeats) {
-    showData.occupiedSeats = {};
-  }
-
-  selectedSeats.forEach((seat: string) => {
-    showData.occupiedSeats[seat] = userId;
-  });
-
-  // 5. Mark as modified and save show changes
-  showData.markModified("occupiedSeats");
-  await showData.save();
-
-  // 6. Return success response
   return NextResponse.json(
-    new ApiResponse(201, "Booking created successfully", { booking }),
-    { status: 201 }
+    { success: true, message: "User bookings fetched successfully", data: bookings },
+    { status: 200 }
+  );
+});
+
+// API Controller Function to update Favorite Movie
+export const updateFavorite = asyncHandler(async (request: NextRequest) => {
+  await dbConnect();
+
+  // 1. Better Auth se session check karein
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  if (!session || !session.user) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
+  const userId = session.user.id;
+  const { movieId } = await request.json();
+
+  if (!movieId) {
+    return NextResponse.json(
+      { success: false, message: "Movie ID is required" },
+      { status: 400 }
+    );
+  }
+
+  // 2. Mongoose User find karein
+  const user = await User.findById(userId);
+
+  if (!user) {
+    return NextResponse.json(
+      { success: false, message: "User not found" },
+      { status: 404 }
+    );
+  }
+
+  // 3. Agar user ke paas favorites array nahi hai toh initialize karein
+  if (!user.favorites) {
+    user.favorites = [];
+  }
+
+  // 4. Toggle logic (agar pehle se hai toh remove karein, nahi toh add karein)
+  const index = user.favorites.indexOf(movieId);
+  if (index > -1) {
+    user.favorites.splice(index, 1);
+  } else {
+    user.favorites.push(movieId);
+  }
+
+  await user.save();
+
+  return NextResponse.json(
+    { success: true, message: "Favorite movies updated", favorites: user.favorites },
+    { status: 200 }
+  );
+});
+
+
+// API Controller Function to Get User's Favorite Movies
+export const getFavorites = asyncHandler(async (request: NextRequest) => {
+  await dbConnect();
+
+  // 1. Better Auth se session check karein
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  if (!session || !session.user) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
+  const userId = session.user.id;
+
+  // 2. Database se user find karke favorites array lein
+  const user = await User.findById(userId);
+
+  if (!user || !user.favorites || user.favorites.length === 0) {
+    return NextResponse.json(
+      { success: true, movies: [] },
+      { status: 200 }
+    );
+  }
+
+  // 3. Favorites array wali IDs ke against movies fetch karein
+  const movies = await Movie.find({ _id: { $in: user.favorites } });
+
+  return NextResponse.json(
+    { success: true, movies },
+    { status: 200 }
   );
 });

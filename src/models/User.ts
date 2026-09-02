@@ -5,6 +5,7 @@ export interface IUser {
   name: string;
   email: string;
   image?: string;
+  favorites: mongoose.Types.ObjectId[]; // Added favorites field
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +30,12 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: false,
     },
+    favorites: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Movie',
+      }
+    ],
   },
   {
     timestamps: true,

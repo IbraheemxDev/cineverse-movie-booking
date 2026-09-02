@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-  import { ClerkProvider } from '@clerk/nextjs'
 
 import "./globals.css";
 import Providers from "@/components/Providers";
@@ -14,11 +13,11 @@ export const metadata: Metadata = {
 };   
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <ClerkProvider>
+   
 
     <html
       lang="en"
-      
+      suppressHydrationWarning
       className={`${inter.variable} h-full antialiased scroll-smooth `}
       >
       <body className={`${inter.className} min-h-full flex flex-col`} >
@@ -27,6 +26,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </Providers>
       </body>
     </html>
-    </ClerkProvider>
+    
   );
 }

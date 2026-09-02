@@ -1,5 +1,7 @@
 import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { asyncHandler } from "@/utils/AsyncHandler";
 import { ApiResponse } from "@/utils/ApiResponse";
 import { ApiError } from "@/utils/ApiError";
@@ -26,6 +28,20 @@ export const getNowPlayingMovies = asyncHandler(async (req: NextRequest) => {
 // to add a new show to database  
 export const addShow = asyncHandler(async (req: NextRequest) => {
   await connectDB();
+
+  // Better Auth session check aur Admin validation
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    throw new ApiError(401, "Unauthorized: Please log in");
+  }
+
+  // Agar user collection mein role field rakhi hai toh admin check yehi hoga:
+  if (session.user.role !== "admin") {
+    throw new ApiError(403, "Not authorized as admin");
+  }
 
   const body = await req.json(); 
   const { movieId, showsInput, showPrice } = body;
@@ -68,7 +84,6 @@ export const addShow = asyncHandler(async (req: NextRequest) => {
 
     movie = await Movie.create(movieDetails);
   }
-
 
  // 3. Create shows array using video's logic
   const showsToCreate: any[] = [];
@@ -127,7 +142,6 @@ export const getShow = asyncHandler(async (req: NextRequest, context?: { params:
     throw new ApiError(400, "Route parameters are missing");
   } 
 
-  // Next.js 15+ / App Router ke mutabiq params ko await karna parta hai
   const { movieId } = await context?.params;
 
   if (!movieId) {
