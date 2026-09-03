@@ -10,17 +10,16 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const { data: session, isPending } = useSession();
   const router = useRouter();
 
-  // Yeh line add karein taake browser console mein session check ho sake
-  console.log("FULL SESSION DATA:", session);
+  // Better-Auth user type mein custom role field ko type-safe banaya
+  const user = session?.user as (typeof session extends { user: infer U } ? U : any) & { role?: string };
 
   useEffect(() => {
     if (!isPending) {
-      console.log("User Role:", session?.user?.role);
-      if (!session || session.user.role !== "admin") {
+      if (!user || user.role !== "admin") {
         router.push('/');
       }
     }
-  }, [session, isPending, router]);
+  }, [user, isPending, router]);
 
   if (isPending) {
     return (
@@ -30,7 +29,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (!session || session.user.role !== "admin") {
+  if (!user || user.role !== "admin") {
     return null;
   }
 
@@ -40,11 +39,11 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       <div className='flex'>
         <AdminSidebar />
         <div className='flex-1 px-4 py-10 md:px-10 h-[calc(100vh-64px)] overflow-y-auto'>
-        {children}
+          {children}
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default AdminLayout
+export default AdminLayout;

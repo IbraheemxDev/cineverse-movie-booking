@@ -13,8 +13,8 @@ export interface IMovie {
   casts: any[];
   vote_average: number;
   runtime: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const movieSchema = new Schema<IMovie>(
@@ -27,14 +27,15 @@ const movieSchema = new Schema<IMovie>(
     release_date: { type: String, required: true },
     original_language: { type: String },
     tagline: { type: String },
-    genres: { type: [Schema.Types.Mixed], required: true },
-    casts: { type: [Schema.Types.Mixed], required: true },
+    genres: { type: [Schema.Types.Mixed] as any, default: [] },
+    casts: { type: [Schema.Types.Mixed] as any, default: [] },
     vote_average: { type: Number, required: true },
     runtime: { type: Number, required: true },
   },
   { timestamps: true }
 );
 
-const Movie: Model<IMovie> = mongoose.models.Movie || mongoose.model<IMovie>('Movie', movieSchema);
+const Movie: Model<IMovie> =
+  mongoose.models.Movie || mongoose.model<IMovie>('Movie', movieSchema);
 
 export default Movie;

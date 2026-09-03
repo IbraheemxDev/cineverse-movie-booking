@@ -9,7 +9,6 @@ import User from "@/models/User";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
-
 // API Controller Function to Get User Bookings
 export const getUserBookings = asyncHandler(async (request: NextRequest) => {
   await dbConnect();
@@ -29,12 +28,9 @@ export const getUserBookings = asyncHandler(async (request: NextRequest) => {
   const userEmail = session.user.email;
 
   // Resolve user document to get the exact _id
-const user = await User.findOne({
-  $or: [
-    { _id: userId as any },
-    { email: userEmail },
-  ],
-} as any).select('_id').lean();
+  const user = await (User as any).findOne({
+    $or: [{ _id: userId }, { email: userEmail }],
+  }).select('_id').lean();
 
   if (!user) {
     return NextResponse.json(
@@ -43,7 +39,7 @@ const user = await User.findOne({
     );
   }
 
-  const bookings = await Booking.find({ user: user._id })
+  const bookings = await (Booking as any).find({ user: user._id })
     .populate({
       path: "show",
       populate: { path: "movie" },
@@ -86,7 +82,7 @@ export const updateFavorite = asyncHandler(async (request: NextRequest) => {
   const userEmail = session.user.email;
 
   // 1. Better Auth User fetch
-  const user = await User.findOne({
+  const user = await (User as any).findOne({
     $or: [{ _id: userId }, { email: userEmail }],
   }).lean();
 
@@ -101,11 +97,11 @@ export const updateFavorite = asyncHandler(async (request: NextRequest) => {
   const isAlreadyFavorite = currentFavorites.includes(targetMovieId);
 
   // 2. Atomic Toggle: $pull if exists, otherwise $addToSet
-  const updateQuery = isAlreadyFavorite
+  const updateQuery: any = isAlreadyFavorite
     ? { $pull: { favorites: targetMovieId } }
     : { $addToSet: { favorites: targetMovieId } };
 
-  const updatedUser = await User.findByIdAndUpdate(
+  const updatedUser: any = await (User as any).findByIdAndUpdate(
     user._id,
     updateQuery,
     { new: true }
@@ -140,7 +136,7 @@ export const getFavorites = asyncHandler(async (request: NextRequest) => {
   const userEmail = session.user.email;
 
   // Consistent query with email fallback
-  const user = await User.findOne({
+  const user = await (User as any).findOne({
     $or: [{ _id: userId }, { email: userEmail }],
   }).lean();
 
@@ -151,7 +147,7 @@ export const getFavorites = asyncHandler(async (request: NextRequest) => {
     );
   }
 
-  const movies = await Movie.find({ _id: { $in: user.favorites } }).lean();
+  const movies = await (Movie as any).find({ _id: { $in: user.favorites } }).lean();
 
   return NextResponse.json(
     { success: true, movies },

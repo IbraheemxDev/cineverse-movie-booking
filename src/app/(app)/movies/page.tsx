@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import BlurCircle from '@/components/BlurCircle';
 import MovieCard from '@/components/MovieCard';
 

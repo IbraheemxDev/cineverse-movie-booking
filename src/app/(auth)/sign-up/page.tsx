@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { signUp } from "@/lib/auth-client";
+import { signUp, signIn } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import CinematicAuthShell, {
@@ -39,7 +39,10 @@ export default function SignUpPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    await signUp.social({ provider: "google", callbackURL: "/" });
+    await signIn.social({
+      provider: "google",
+      callbackURL: "/",
+    });
   };
 
   return (
