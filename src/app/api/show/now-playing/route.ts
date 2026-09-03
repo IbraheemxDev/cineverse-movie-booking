@@ -1,5 +1,5 @@
 import { getNowPlayingMovies } from "@/controllers/showController";
-import { protectAdmin } from "@/utils/auth";
+import { protectAdmin } from "@/utils/protectRoute";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {

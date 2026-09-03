@@ -1,5 +1,6 @@
+
 import { addShow } from "@/controllers/showController";
-import { protectAdmin } from "@/utils/auth"; // ya jahan bhi aapne protectAdmin rakhi hai
+import { protectAdmin } from "@/utils/protectRoute"; // Aapke folder path ke mutabiق
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {

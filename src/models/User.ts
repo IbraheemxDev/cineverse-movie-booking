@@ -1,47 +1,37 @@
 import mongoose, { Model, Schema } from 'mongoose';
 
 export interface IUser {
-  _id: string;
+  _id: any;
   name: string;
   email: string;
   image?: string;
-  favorites: mongoose.Types.ObjectId[]; // Added favorites field
+  role?: string;
+  emailVerified?: boolean;
+  favorites?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
 
 const UserSchema = new Schema<IUser>(
   {
-    _id: { 
-      type: String, 
-      required: true 
-    },
-    name: {
-      type: String,
-      required: [true, 'Name is required'],
-    },
-    email: {
-      type: String,
-      required: [true, 'Email is required'],
-      unique: true,
-      lowercase: true,
-    },
-    image: {
-      type: String,
-      required: false,
-    },
-    favorites: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'Movie',
-      }
-    ],
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    image: { type: String },
+    role: { type: String, default: 'user' },
+    emailVerified: { type: Boolean, default: false },
+    favorites: { type: [String], default: [] },
   },
   {
     timestamps: true,
+    collection: 'user', // Better Auth ki collection
   }
 );
 
-const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+// Delete existing compiled model in dev mode to apply new schema
+if (mongoose.models.User) {
+  delete (mongoose.models as any).User;
+}
+
+const User: Model<IUser> = mongoose.model<IUser>('User', UserSchema, 'user');
 
 export default User;

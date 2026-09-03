@@ -1,10 +1,10 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface IBooking extends Document {
-  user: string;
-  show: string;
+  user: mongoose.Types.ObjectId | string;
+  show: mongoose.Types.ObjectId | string;
   amount: number;
-  bookedSeats: string[]; // ya jo bhi data type aap seats ke liye use kar rahe hain
+  bookedSeats: string[];
   isPaid: boolean;
   paymentLink?: string;
   createdAt: Date;
@@ -13,14 +13,35 @@ export interface IBooking extends Document {
 
 const bookingSchema = new Schema<IBooking>(
   {
-    user: { type: String, required: true, ref: "User" },
-    show: { type: String, required: true, ref: "Show" },
-    amount: { type: Number, required: true },
-    bookedSeats: { type: [String], required: true },
-    isPaid: { type: Boolean, default: false },
-    paymentLink: { type: String },
+    user: { 
+      type: Schema.Types.ObjectId, 
+      required: true, 
+      ref: "User" 
+    },
+    show: { 
+      type: Schema.Types.ObjectId, 
+      required: true, 
+      ref: "Show" 
+    },
+    amount: { 
+      type: Number, 
+      required: true 
+    },
+    bookedSeats: { 
+      type: [String], 
+      required: true 
+    },
+    isPaid: { 
+      type: Boolean, 
+      default: false 
+    },
+    paymentLink: { 
+      type: String 
+    },
   },
-  { timestamps: true }
+  { 
+    timestamps: true 
+  }
 );
 
 export const Booking: Model<IBooking> =

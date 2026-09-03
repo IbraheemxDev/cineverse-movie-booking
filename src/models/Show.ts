@@ -11,12 +11,15 @@ export interface IShow {
 
 const showSchema = new Schema<IShow>(
   {
-    movie: { type: String, required: true, ref: 'Movie' },
+    movie: { type: String, required: true, ref: 'Movie' }, // TMDB movie string ID
     showDateTime: { type: Date, required: true },
     showPrice: { type: Number, required: true },
     occupiedSeats: { type: Object, default: {} },
   },
-  { minimize: false }
+  { 
+    timestamps: true,
+    minimize: false 
+  }
 );
 
 const Show: Model<IShow> = mongoose.models.Show || mongoose.model<IShow>('Show', showSchema);

@@ -1,27 +1,35 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
-import { MongoClient } from "mongodb";
+import connectDB from "./dbConnect"; // aapka connectDB file path
 
-const uri = process.env.MONGODB_URI as string;
-const client = new MongoClient(uri);
-const db = client.db();
+// Mongoose ka underlying native MongoDB client get karein
+const mongooseInstance = await connectDB();
+const nativeClient = mongooseInstance.connection.getClient();
+const db = nativeClient.db();
 
 export const auth = betterAuth({
-  database: mongodbAdapter(db),
+   database: mongodbAdapter(db, {
+    client: nativeClient, // 👈 ye add karo — transactions enable karega
+  }),
   baseURL: process.env.BETTER_AUTH_URL,
   secret: process.env.BETTER_AUTH_SECRET,
   user: {
+    changeEmail: {
+      enabled: true,
+    },
     additionalFields: {
       role: {
         type: "string",
         required: false,
         defaultValue: "user",
-        input: false, // Taake normal user signup ke waqt khud ko admin na bana sake
+        input: false, // Normal user signup ke waqt khud ko admin na bana sake
       },
     },
   },
   emailAndPassword: {
-    enabled: true,
+    enabled: true, // Password change and credentials support
+    allowPasswordReset: true,
+    resetPasswordTokenExpiresIn: 60 * 60, 
   },
   socialProviders: {
     google: {
