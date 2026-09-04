@@ -334,8 +334,9 @@ const Page = () => {
     }
   }
 
-  // 2. Fetch already occupied/booked seats when a specific showtime is selected
+  // 2. Fetch occupied seats
   const fetchOccupiedSeats = async (showId: string) => {
+    if (!showId) return
     try {
       const res = await fetch(`/api/booking/seats/${showId}`)
       const data = await res.json()
@@ -352,10 +353,18 @@ const Page = () => {
     fetchShowDetails()
   }, [id])
 
-  const handleTimeSelect = (item: SelectedTime) => {
-    setSelectedTime(item)
+  const handleTimeSelect = (item: any) => {
+    // Show ID fallback resolution
+    const resolvedShowId = item.showId || item._id || showData?._id
+    const timeObj: SelectedTime = {
+      showId: resolvedShowId,
+      time: item.time,
+      price: item.price
+    }
+
+    setSelectedTime(timeObj)
     setSelectedSeats([])
-    fetchOccupiedSeats(item.showId)
+    fetchOccupiedSeats(resolvedShowId)
   }
 
   const handleSeatClick = (seatId: string) => {
@@ -383,7 +392,9 @@ const Page = () => {
 
   // 3. Direct Booking Handler
   const handleBooking = async () => {
-    if (!selectedTime) {
+    const finalShowId = selectedTime?.showId || showData?._id
+
+    if (!finalShowId) {
       return toast.error('Please select a show timing')
     }
 
@@ -399,7 +410,7 @@ const Page = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          showId: selectedTime.showId,
+          showId: finalShowId,
           seats: selectedSeats,
           amount: totalAmount,
         }),
@@ -421,9 +432,8 @@ const Page = () => {
     }
   }
 
-  // Row render function with strict single-line flex-nowrap
   const renderSeats = (row: string, count = 9) => (
-    <div key={row} className="flex flex-nowrap items-center justify-center gap-2 mt-2">
+    <div key={row} className="flex flex-nowrap items-center justify-center gap-1.5 md:gap-2 mt-2">
       {Array.from({ length: count }, (_, i) => {
         const seatId = `${row}${i + 1}`
         const isOccupied = occupiedSeats.includes(seatId)
@@ -434,7 +444,7 @@ const Page = () => {
             key={seatId}
             disabled={isOccupied}
             onClick={() => handleSeatClick(seatId)}
-            className={`h-8 w-8 shrink-0 rounded border border-primary/60 cursor-pointer text-xs font-medium transition ${
+            className={`h-7 w-7 md:h-8 md:w-8 shrink-0 rounded border border-primary/60 cursor-pointer text-[10px] md:text-xs font-medium transition ${
               isOccupied
                 ? 'bg-gray-700 text-gray-500 border-gray-600 cursor-not-allowed'
                 : isSelected
@@ -456,32 +466,35 @@ const Page = () => {
   const timingsList = showData.dateTime ? showData.dateTime[date] || [] : []
 
   return (
-    <div className="flex flex-col md:flex-row px-4 md:px-12 lg:px-24 pt-24 md:pt-32 pb-20 gap-8">
+    <div className="flex flex-col md:flex-row px-4 md:px-12 lg:px-24 pt-36 md:pt-40 pb-24 gap-8 min-h-screen">
 
       {/* Timing Selection Sidebar */}
-      <div className="w-full md:w-60 bg-primary/10 border border-primary/20 rounded-lg py-6 md:py-10 h-max shrink-0 md:sticky md:top-28">
+      <div className="w-full md:w-60 bg-primary/10 border border-primary/20 rounded-lg py-6 md:py-10 h-max shrink-0 md:sticky md:top-32 z-10">
         <p className="text-lg font-semibold px-6">
           Available Timings
         </p>
 
         <div className="mt-5 space-y-1 flex flex-row md:flex-col overflow-x-auto no-scrollbar px-3 md:px-0">
           {timingsList.length > 0 ? (
-            timingsList.map((item: any) => (
-              <div
-                onClick={() => handleTimeSelect(item)}
-                key={item.showId}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-md md:rounded-l-none md:rounded-r-md cursor-pointer transition whitespace-nowrap ${
-                  selectedTime?.showId === item.showId
-                    ? 'bg-primary text-white'
-                    : 'hover:bg-primary/25'
-                }`}
-              >
-                <ClockIcon className="w-4 h-4 shrink-0" />
-                <p className="text-sm">
-                  {isoTimeFormat(item.time)}
-                </p>
-              </div>
-            ))
+            timingsList.map((item: any, index: number) => {
+              const currentId = item.showId || item._id || showData._id
+              return (
+                <div
+                  onClick={() => handleTimeSelect(item)}
+                  key={currentId || index}
+                  className={`flex items-center gap-2 px-6 py-2.5 rounded-md md:rounded-l-none md:rounded-r-md cursor-pointer transition whitespace-nowrap ${
+                    selectedTime?.time === item.time
+                      ? 'bg-primary text-white'
+                      : 'hover:bg-primary/25'
+                  }`}
+                >
+                  <ClockIcon className="w-4 h-4 shrink-0" />
+                  <p className="text-sm">
+                    {isoTimeFormat(item.time)}
+                  </p>
+                </div>
+              )
+            })
           ) : (
             <p className="text-xs text-gray-400 px-6">No shows available for this date.</p>
           )}
@@ -489,9 +502,9 @@ const Page = () => {
       </div>
 
       {/* Seats Layout & Selection */}
-      <div className="relative flex-1 flex flex-col items-center overflow-hidden w-full">
-        <BlurCircle top="-100px" left="-100px" />
-        <BlurCircle bottom="0" right="0" />
+      <div className="relative flex-1 flex flex-col items-center w-full z-10">
+        <BlurCircle top="-40px" left="-40px" />
+        <BlurCircle bottom="20px" right="20px" />
 
         <h1 className="text-2xl font-semibold mb-4 text-center">
           Select your seat
@@ -509,7 +522,7 @@ const Page = () => {
           SCREEN SIDE
         </p>
 
-        {/* Scrollable Container on Mobile */}
+        {/* Scrollable Container with Padding */}
         <div className="w-full overflow-x-auto pb-4 pt-2">
           <div className="min-w-max mx-auto flex flex-col items-center px-4">
             
@@ -518,16 +531,14 @@ const Page = () => {
               {groupRows[0].map((row) => renderSeats(row))}
             </div>
 
-            {/* Main Hall (C-D, E-F, G-H, I-J) */}
+            {/* Main Hall */}
             <div className="flex flex-col gap-6">
-              {/* Row C-D & E-F Block */}
-              <div className="flex gap-8 items-start">
+              <div className="flex gap-4 md:gap-8 items-start">
                 <div>{groupRows[1].map((row) => renderSeats(row))}</div>
                 <div>{groupRows[2].map((row) => renderSeats(row))}</div>
               </div>
 
-              {/* Row G-H & I-J Block */}
-              <div className="flex gap-8 items-start">
+              <div className="flex gap-4 md:gap-8 items-start">
                 <div>{groupRows[3].map((row) => renderSeats(row))}</div>
                 <div>{groupRows[4].map((row) => renderSeats(row))}</div>
               </div>
@@ -540,7 +551,7 @@ const Page = () => {
         <button 
           onClick={handleBooking}
           disabled={bookingLoading || selectedSeats.length === 0}
-          className='flex items-center gap-2 mt-12 px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/25'
+          className='flex items-center gap-2 mt-10 px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/25'
         >
           {bookingLoading ? (
             <>
