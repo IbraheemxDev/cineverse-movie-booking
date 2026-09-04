@@ -80,9 +80,13 @@ const Page = () => {
     }
   }, [id])
 
-  // Resolve ID safely across different backend naming formats
+  // Resolve Show ID safely from showtiming document
   const handleTimeSelect = (item: any) => {
-    const resolvedId = item?.showId || item?._id || item?.id || showData?._id || id
+    const resolvedId = item?.showId || item?._id || item?.id || showData?._id
+
+    if (!resolvedId) {
+      return toast.error('Invalid show timing selected')
+    }
 
     const selectedObj: SelectedTime = {
       showId: String(resolvedId),
@@ -115,12 +119,12 @@ const Page = () => {
     )
   }
 
-  const ticketPrice = selectedTime?.price || showData?.ticketPrice || 10
+  const ticketPrice = selectedTime?.price || showData?.showPrice || showData?.ticketPrice || 10
   const totalAmount = selectedSeats.length * ticketPrice
 
   // 3. Direct Booking Handler
   const handleBooking = async () => {
-    const finalShowId = selectedTime?.showId || showData?._id || id
+    const finalShowId = selectedTime?.showId
 
     if (!finalShowId) {
       return toast.error('Please select a show timing')
@@ -139,7 +143,7 @@ const Page = () => {
         },
         body: JSON.stringify({
           showId: finalShowId,
-          seats: selectedSeats,
+          selectedSeats: selectedSeats,
           amount: totalAmount,
         }),
       })
@@ -160,7 +164,7 @@ const Page = () => {
     }
   }
 
-  // Seats Row: flex-nowrap ensures all 9 seats stay in one straight line
+  // Seats Row: flex-nowrap ensures all 9 seats stay in one line
   const renderSeats = (row: string, count = 9) => (
     <div key={row} className="flex flex-nowrap items-center justify-center gap-1.5 md:gap-2 mt-2">
       {Array.from({ length: count }, (_, i) => {

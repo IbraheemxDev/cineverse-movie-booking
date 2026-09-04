@@ -14,6 +14,7 @@ import { ApiResponse } from "@/utils/ApiResponse";
 import connectDB from "@/lib/dbConnect";
 
 // Function to check availability of selected seats for a show
+// Function to check availability of selected seats for a show
 export const checkSeatsAvailability = async (showId: string, selectedSeats: string[]): Promise<boolean> => {
   try {
     const showData = await Show.findById(showId);
@@ -21,12 +22,19 @@ export const checkSeatsAvailability = async (showId: string, selectedSeats: stri
       return false;
     }
 
-    const occupiedSeats = showData.occupiedSeats || {};
+    const occupiedSeats = showData.occupiedSeats;
 
-    // Check if any of the selected seats are already taken
-    const isAnySeatTaken = selectedSeats.some((seat) => occupiedSeats[seat]);
+    if (!occupiedSeats) return true;
 
-    return !isAnySeatTaken; // true if available, false if already taken
+    // Check if seats are Map or regular Object
+    const isTaken = selectedSeats.some((seat) => {
+      if (occupiedSeats instanceof Map || typeof occupiedSeats.has === "function") {
+        return occupiedSeats.has(seat);
+      }
+      return Boolean(occupiedSeats[seat]);
+    });
+
+    return !isTaken;
   } catch (error: any) {
     throw new ApiError(500, error.message || "Failed to check seat availability");
   }
@@ -47,13 +55,14 @@ export const createBooking = asyncHandler(async (req: NextRequest) => {
   const userId = session.user.id;
 
   // 2. Parse request body
-  const body = await req.json();
-  const { showId, selectedSeats } = body;
+// 2. Parse request body
+const body = await req.json();
+const showId = body.showId;
+const selectedSeats = body.selectedSeats || body.seats; // Fallback added
 
-  if (!showId || !selectedSeats || !Array.isArray(selectedSeats) || selectedSeats.length === 0) {
-    throw new ApiError(400, "Show ID and selected seats are required");
-  }
-
+if (!showId || !selectedSeats || !Array.isArray(selectedSeats) || selectedSeats.length === 0) {
+  throw new ApiError(400, "Show ID and selected seats are required");
+}
   // 3. Check if seats are available using existing utility function
   const isAvailable = await checkSeatsAvailability(showId, selectedSeats);
 
