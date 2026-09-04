@@ -33,7 +33,7 @@ export default function CinematicAuthShell({
 }) {
   return (
     <div
-      className={`${bebas.variable} ${inter.variable} min-h-screen flex font-[family-name:var(--font-body)] text-[#F3EFE9]`}
+      className={`${bebas.variable} ${inter.variable} min-h-screen min-h-[100dvh] flex overflow-x-hidden font-[family-name:var(--font-body)] text-[#F3EFE9]`}
       style={{ backgroundColor: VOID }}
     >
       <style>{`
@@ -93,16 +93,16 @@ export default function CinematicAuthShell({
       </div>
 
       {/* Right panel — the actual form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12 relative">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 relative overflow-hidden">
         {/* soft warm bleed behind the card, ties the two panels together */}
         <div
           aria-hidden
-          className="pointer-events-none absolute w-[520px] h-[520px] rounded-full blur-[130px] opacity-[0.08]"
+          className="pointer-events-none absolute w-[320px] h-[320px] sm:w-[520px] sm:h-[520px] rounded-full blur-[90px] sm:blur-[130px] opacity-[0.08]"
           style={{ backgroundColor: "#D9A54A" }}
         />
 
         <div className="w-full max-w-md relative">
-          <div className="md:hidden mb-8 flex items-center gap-3">
+          <div className="md:hidden mb-6 sm:mb-8 flex items-center gap-3">
             <div className="w-8 h-[3px]" style={{ backgroundColor: "#D9A54A" }} />
             <span className="font-[family-name:var(--font-display)] text-2xl tracking-wide">
               CINEVERSE
@@ -110,7 +110,7 @@ export default function CinematicAuthShell({
           </div>
 
           <div
-            className="auth-card-enter relative rounded-2xl border border-white/10 p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.6)] overflow-hidden"
+            className="auth-card-enter relative rounded-xl sm:rounded-2xl border border-white/10 p-5 sm:p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.6)] overflow-hidden"
             style={{ backgroundColor: "#131116" }}
           >
             {/* top accent thread, warm-to-primary */}
@@ -120,8 +120,8 @@ export default function CinematicAuthShell({
               style={{ background: "linear-gradient(90deg, #D9A54A, #E5304F)" }}
             />
 
-            <h2 className="text-2xl font-semibold mb-1.5 mt-1">{title}</h2>
-            <p className="text-[#948C99] text-sm mb-7">{subtitle}</p>
+            <h2 className="text-xl sm:text-2xl font-semibold mb-1.5 mt-1">{title}</h2>
+            <p className="text-[#948C99] text-sm mb-6 sm:mb-7">{subtitle}</p>
             {children}
           </div>
         </div>
@@ -132,7 +132,7 @@ export default function CinematicAuthShell({
 
 export function TicketDivider() {
   return (
-    <div className="flex items-center gap-3 my-7">
+    <div className="flex items-center gap-3 my-6 sm:my-7">
       <div className="flex-1 border-t border-dashed border-white/15" />
       <span className="text-xs text-[#77707F]">or continue with</span>
       <div className="flex-1 border-t border-dashed border-white/15" />
