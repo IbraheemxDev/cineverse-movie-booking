@@ -98,11 +98,11 @@ const Page = () => {
   const { movie, dateTime } = show
 
   return (
-    <div className="px-6 md:px-16 lg:px-40 pt-30 md:pt-50">
-      <div className="flex flex-col md:flex-row gap-8 max-w-6xl mx-auto">
+    <div className="px-6 md:px-16 lg:px-40 pt-24 md:pt-32 pb-20">
+      <div className="flex flex-col md:flex-row gap-8 max-w-6xl mx-auto items-start">
 
         {/* Movie Poster */}
-        <div className="relative max-md:mx-auto h-104 w-70 rounded-xl overflow-hidden bg-gray-800 shrink-0">
+        <div className="relative max-md:mx-auto h-104 w-70 rounded-xl overflow-hidden bg-gray-800 shrink-0 shadow-2xl">
           <img
             src={movie.poster_path ? `${imgBaseUrl}${movie.poster_path}` : ""}
             alt={movie.title}
@@ -114,7 +114,7 @@ const Page = () => {
         <div className="relative flex flex-col gap-3">
           <BlurCircle top="-100px" left="-100px" />
 
-          <p className="text-primary uppercase">
+          <p className="text-primary uppercase font-semibold text-xs tracking-wider">
             {movie.original_language}
           </p>
 
@@ -129,7 +129,7 @@ const Page = () => {
             </span>
           </div> 
 
-          <p className="text-gray-400 text-sm leading-tight max-w-xl mt-2">
+          <p className="text-gray-400 text-sm leading-relaxed max-w-xl mt-2">
             {movie.overview}
           </p>
 
@@ -164,8 +164,8 @@ const Page = () => {
       </div>
 
       {/* Cast Section */}
-      <p className='text-lg font-medium mt-20'>Your Favorite Cast</p>
-      <div className='overflow-x-auto no-scrollbar mt-8 pb-4'>
+      <p className='text-lg font-medium mt-16'>Your Favorite Cast</p>
+      <div className='overflow-x-auto no-scrollbar mt-6 pb-4'>
         <div className='flex items-center gap-4 w-max px-4'>
           {movie.casts?.slice(0, 12).map((cast: any, index: number) => (
             <div key={index} className='flex flex-col items-center text-center w-20'>
@@ -185,9 +185,8 @@ const Page = () => {
       </div>
 
       {/* Recommendations Section */}
-      <p className='text-lg font-medium mt-20 mb-8'>You May Also Like</p>
+      <p className='text-lg font-medium mt-16 mb-8'>You May Also Like</p>
       
-      {/* Fixed Grid Layout: Cards stretch nahi honge aur standard size mein rahenge */}
       <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 items-start'>
         {allMovies
           .filter((item: any) => {
@@ -196,7 +195,6 @@ const Page = () => {
           })
           .slice(0, 4)
           .map((item: any, index: number) => {
-            // Agar backend se show wrapper ke andar movie hai toh movie pass hogi, warna direct item
             const moviePayload = item.movie || item;
             return (
               <div key={index} className="w-full flex justify-center">
@@ -206,7 +204,7 @@ const Page = () => {
           })}
       </div>
      
-      <div className="flex justify-center mt-20">
+      <div className="flex justify-center mt-16">
         <button
           onClick={() => {
             router.push('/movies')
