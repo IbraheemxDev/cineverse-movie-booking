@@ -324,7 +324,7 @@ const Page = () => {
       <div id="dateSelect">
         <DateSelect dateTime={dateTime} id={id}/>
       </div>
-
+{/* 
       {/* Recommendations Section */}
       <p className='text-lg font-medium mt-20 mb-8'>You May Also Like</p>
       <div className='flex flex-wrap max-sm:justify-center gap-8'>
@@ -342,7 +342,7 @@ const Page = () => {
           className="px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-md font-medium cursor-pointer"
         >
           Show more
-        </button>
+        </button> */}
       </div>
     </div>
   )
