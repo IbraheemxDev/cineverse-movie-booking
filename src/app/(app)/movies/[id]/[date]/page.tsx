@@ -59,8 +59,9 @@ const Page = () => {
     }
   }
 
-  // 2. Fetch already occupied/booked seats when a specific showtime is selected
+  // 2. Fetch occupied seats when time is selected
   const fetchOccupiedSeats = async (showId: string) => {
+    if (!showId) return
     try {
       const res = await fetch(`/api/booking/seats/${showId}`)
       const data = await res.json()
@@ -74,13 +75,24 @@ const Page = () => {
   }
 
   useEffect(() => {
-    fetchShowDetails()
+    if (id) {
+      fetchShowDetails()
+    }
   }, [id])
 
-  const handleTimeSelect = (item: SelectedTime) => {
-    setSelectedTime(item)
+  // Resolve ID safely across different backend naming formats
+  const handleTimeSelect = (item: any) => {
+    const resolvedId = item?.showId || item?._id || item?.id || showData?._id || id
+
+    const selectedObj: SelectedTime = {
+      showId: String(resolvedId),
+      time: item.time,
+      price: item.price
+    }
+
+    setSelectedTime(selectedObj)
     setSelectedSeats([])
-    fetchOccupiedSeats(item.showId)
+    fetchOccupiedSeats(String(resolvedId))
   }
 
   const handleSeatClick = (seatId: string) => {
@@ -106,9 +118,11 @@ const Page = () => {
   const ticketPrice = selectedTime?.price || showData?.ticketPrice || 10
   const totalAmount = selectedSeats.length * ticketPrice
 
-  // 3. Direct Booking Handler (Stripe Removed)
+  // 3. Direct Booking Handler
   const handleBooking = async () => {
-    if (!selectedTime) {
+    const finalShowId = selectedTime?.showId || showData?._id || id
+
+    if (!finalShowId) {
       return toast.error('Please select a show timing')
     }
 
@@ -124,7 +138,7 @@ const Page = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          showId: selectedTime.showId,
+          showId: finalShowId,
           seats: selectedSeats,
           amount: totalAmount,
         }),
@@ -146,32 +160,31 @@ const Page = () => {
     }
   }
 
+  // Seats Row: flex-nowrap ensures all 9 seats stay in one straight line
   const renderSeats = (row: string, count = 9) => (
-    <div key={row} className="flex gap-2 mt-2">
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        {Array.from({ length: count }, (_, i) => {
-          const seatId = `${row}${i + 1}`
-          const isOccupied = occupiedSeats.includes(seatId)
-          const isSelected = selectedSeats.includes(seatId)
+    <div key={row} className="flex flex-nowrap items-center justify-center gap-1.5 md:gap-2 mt-2">
+      {Array.from({ length: count }, (_, i) => {
+        const seatId = `${row}${i + 1}`
+        const isOccupied = occupiedSeats.includes(seatId)
+        const isSelected = selectedSeats.includes(seatId)
 
-          return (
-            <button
-              key={seatId}
-              disabled={isOccupied}
-              onClick={() => handleSeatClick(seatId)}
-              className={`h-8 w-8 rounded border border-primary/60 cursor-pointer text-xs font-medium transition ${
-                isOccupied
-                  ? 'bg-gray-700 text-gray-500 border-gray-600 cursor-not-allowed'
-                  : isSelected
-                  ? 'bg-primary text-white'
-                  : 'hover:bg-primary/20'
-              }`}
-            >
-              {seatId}
-            </button>
-          )
-        })}
-      </div>
+        return (
+          <button
+            key={seatId}
+            disabled={isOccupied}
+            onClick={() => handleSeatClick(seatId)}
+            className={`h-7 w-7 md:h-8 md:w-8 shrink-0 rounded border border-primary/60 cursor-pointer text-[10px] md:text-xs font-medium transition ${
+              isOccupied
+                ? 'bg-gray-700 text-gray-500 border-gray-600 cursor-not-allowed'
+                : isSelected
+                ? 'bg-primary text-white'
+                : 'hover:bg-primary/20'
+            }`}
+          >
+            {seatId}
+          </button>
+        )
+      })}
     </div>
   )
 
@@ -182,32 +195,35 @@ const Page = () => {
   const timingsList = showData.dateTime ? showData.dateTime[date] || [] : []
 
   return (
-    <div className="flex flex-col md:flex-row px-6 md:px-16 lg:px-40 py-30 md:pt-50">
+    <div className="flex flex-col md:flex-row px-4 md:px-12 lg:px-24 pt-28 md:pt-36 pb-24 gap-8 min-h-screen">
 
       {/* Timing Selection Sidebar */}
-      <div className="w-60 bg-primary/10 border border-primary/20 rounded-lg py-10 h-max md:sticky md:top-30">
+      <div className="w-full md:w-60 bg-primary/10 border border-primary/20 rounded-lg py-6 md:py-10 h-max shrink-0 md:sticky md:top-32 z-10">
         <p className="text-lg font-semibold px-6">
           Available Timings
         </p>
 
-        <div className="mt-5 space-y-1">
+        <div className="mt-5 space-y-1 flex flex-row md:flex-col overflow-x-auto no-scrollbar px-3 md:px-0">
           {timingsList.length > 0 ? (
-            timingsList.map((item: any) => (
-              <div
-                onClick={() => handleTimeSelect(item)}
-                key={item.showId}
-                className={`flex items-center gap-2 px-6 py-2 w-max rounded-r-md cursor-pointer transition ${
-                  selectedTime?.showId === item.showId
-                    ? 'bg-primary text-white'
-                    : 'hover:bg-primary/25'
-                }`}
-              >
-                <ClockIcon className="w-4 h-4" />
-                <p className="text-sm">
-                  {isoTimeFormat(item.time)}
-                </p>
-              </div>
-            ))
+            timingsList.map((item: any, idx: number) => {
+              const currentId = item?.showId || item?._id || idx
+              return (
+                <div
+                  onClick={() => handleTimeSelect(item)}
+                  key={currentId}
+                  className={`flex items-center gap-2 px-6 py-2.5 rounded-md md:rounded-l-none md:rounded-r-md cursor-pointer transition whitespace-nowrap ${
+                    selectedTime?.time === item.time
+                      ? 'bg-primary text-white'
+                      : 'hover:bg-primary/25'
+                  }`}
+                >
+                  <ClockIcon className="w-4 h-4 shrink-0" />
+                  <p className="text-sm">
+                    {isoTimeFormat(item.time)}
+                  </p>
+                </div>
+              )
+            })
           ) : (
             <p className="text-xs text-gray-400 px-6">No shows available for this date.</p>
           )}
@@ -215,34 +231,48 @@ const Page = () => {
       </div>
 
       {/* Seats Layout & Selection */}
-      <div className="relative flex-1 flex flex-col items-center max-md:mt-16">
-        <BlurCircle top="-100px" left="-100px" />
-        <BlurCircle bottom="0" right="0" />
+      <div className="relative flex-1 flex flex-col items-center w-full">
+        <BlurCircle top="-40px" left="-40px" />
+        <BlurCircle bottom="20px" right="20px" />
 
-        <h1 className="text-2xl font-semibold mb-4">
+        <h1 className="text-2xl font-semibold mb-4 text-center">
           Select your seat
         </h1>
 
-        <Image
-          src={assets.screenImage}
-          alt="Screen"
-        />
+        <div className="max-w-md w-full px-4 mb-2 flex justify-center">
+          <Image
+            src={assets.screenImage}
+            alt="Screen"
+            className="w-full max-w-sm h-auto"
+          />
+        </div>
 
-        <p className="text-gray-400 text-sm mb-6">
+        <p className="text-gray-400 text-xs tracking-widest mb-6">
           SCREEN SIDE
         </p>
 
-        <div className="flex flex-col items-center mt-10 text-xs text-gray-300">
-          <div className="grid grid-cols-2 md:grid-cols-1 gap-8 md:gap-2 mb-6">
-            {groupRows[0].map((row) => renderSeats(row))}
-          </div>
+        {/* Scrollable Container on Mobile, perfectly centered on Desktop */}
+        <div className="w-full overflow-x-auto pb-4 pt-2">
+          <div className="min-w-max mx-auto flex flex-col items-center px-4">
+            
+            {/* Top Rows (A & B) */}
+            <div className="flex flex-col gap-1 mb-6">
+              {groupRows[0].map((row) => renderSeats(row))}
+            </div>
 
-          <div className="grid grid-cols-2 gap-11">
-            {groupRows.slice(1).map((group, idx) => (
-              <div key={idx}>
-                {group.map((row) => renderSeats(row))}
+            {/* Main Hall */}
+            <div className="flex flex-col gap-6">
+              <div className="flex gap-4 md:gap-8 items-start">
+                <div>{groupRows[1].map((row) => renderSeats(row))}</div>
+                <div>{groupRows[2].map((row) => renderSeats(row))}</div>
               </div>
-            ))}
+
+              <div className="flex gap-4 md:gap-8 items-start">
+                <div>{groupRows[3].map((row) => renderSeats(row))}</div>
+                <div>{groupRows[4].map((row) => renderSeats(row))}</div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -250,7 +280,7 @@ const Page = () => {
         <button 
           onClick={handleBooking}
           disabled={bookingLoading || selectedSeats.length === 0}
-          className='flex items-center gap-2 mt-16 px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/25'
+          className='flex items-center gap-2 mt-10 px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/25'
         >
           {bookingLoading ? (
             <>
